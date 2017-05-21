@@ -258,7 +258,8 @@ class AbstractProvider(object):
                 result =[]
                 return result
         else:
-            result = [] 
+            context.set_content_type(constants.content_type.FILES)
+            result = []
 
             # 'New Search...'
             new_search_item = items.NewSearchItem(context, fanart=self.get_alternative_fanart(context))
