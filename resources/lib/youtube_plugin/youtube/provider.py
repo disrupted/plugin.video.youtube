@@ -416,13 +416,13 @@ class Provider(kodion.AbstractProvider):
 
                 # second: remove video from 'Watch Later' playlist
                 if context.get_settings().get_bool('youtube.playlist.watchlater.autoremove', True):
-                    cplid = context.get_settings().get_string('youtube.folder.watch_later.playlist', '').strip()
-                    playlist_id = cplid if cplid else 'WL'
-                    playlist_item_id = client.get_playlist_item_id_of_video_id(playlist_id=playlist_id, video_id=video_id)
-                    if playlist_item_id:
-                        json_data = client.remove_video_from_playlist(playlist_id, playlist_item_id)
-                        if not v3.handle_error(self, context, json_data):
-                            return False
+                    watch_later_playlist_id = context.get_settings().get_string('youtube.folder.watch_later.playlist', '').strip()
+                    if watch_later_playlist_id:
+                        playlist_item_id = client.get_playlist_item_id_of_video_id(playlist_id=watch_later_playlist_id, video_id=video_id)
+                        if playlist_item_id:
+                            json_data = client.remove_video_from_playlist(watch_later_playlist_id, playlist_item_id)
+                            if not v3.handle_error(self, context, json_data):
+                                return False
 
                 history_playlist_id = context.get_settings().get_string('youtube.folder.history.playlist', '').strip()
                 if history_playlist_id:
@@ -697,7 +697,8 @@ class Provider(kodion.AbstractProvider):
                 pass
 
             # watch later
-            if 'watchLater' in playlists and settings.get_bool('youtube.folder.watch_later.show', True):
+            if 'watchLater' in playlists and settings.get_bool('youtube.folder.watch_later.show', True) and \
+                    settings.get_string('youtube.folder.watch_later.playlist', '').strip():
                 watch_later_item = DirectoryItem(context.localize(self.LOCAL_MAP['youtube.watch_later']),
                                                  context.create_uri(
                                                      ['channel', 'mine', 'playlist', playlists['watchLater']]),
@@ -732,7 +733,8 @@ class Provider(kodion.AbstractProvider):
                 pass
 
             # history
-            if 'watchHistory' in playlists and settings.get_bool('youtube.folder.history.show', False):
+            if 'watchHistory' in playlists and settings.get_bool('youtube.folder.history.show', False) and \
+                    settings.get_string('youtube.folder.history.playlist', '').strip():
                 watch_history_item = DirectoryItem(context.localize(self.LOCAL_MAP['youtube.history']),
                                                    context.create_uri(
                                                        ['channel', 'mine', 'playlist', playlists['watchHistory']]),
@@ -760,14 +762,14 @@ class Provider(kodion.AbstractProvider):
                 pass
             pass
 
-        # browse channels
-        if settings.get_bool('youtube.folder.browse_channels.show', True):
-            browse_channels_item = DirectoryItem(context.localize(self.LOCAL_MAP['youtube.browse_channels']),
-                                                 context.create_uri(['special', 'browse_channels']),
-                                                 image=context.create_resource_path('media', 'browse_channels.png'))
-            browse_channels_item.set_fanart(self.get_fanart(context))
-            result.append(browse_channels_item)
-            pass
+            # browse channels
+            if settings.get_bool('youtube.folder.browse_channels.show', True):
+                browse_channels_item = DirectoryItem(context.localize(self.LOCAL_MAP['youtube.browse_channels']),
+                                                     context.create_uri(['special', 'browse_channels']),
+                                                     image=context.create_resource_path('media', 'browse_channels.png'))
+                browse_channels_item.set_fanart(self.get_fanart(context))
+                result.append(browse_channels_item)
+                pass
 
         # live events
         if settings.get_bool('youtube.folder.live.show', True):
