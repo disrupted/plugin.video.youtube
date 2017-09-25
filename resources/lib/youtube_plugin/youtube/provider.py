@@ -233,7 +233,7 @@ class Provider(kodion.AbstractProvider):
 
         return False
 
-    @kodion.RegisterProviderPath('^/playlist/(?P<playlist_id>.*)/$')
+    @kodion.RegisterProviderPath('^/playlist/(?P<playlist_id>[^/]+)/$')
     def _on_playlist(self, context, re_match):
         self.set_content_type(context, kodion.constants.content_type.EPISODES)
 
@@ -252,12 +252,12 @@ class Provider(kodion.AbstractProvider):
 
     """
     Lists the videos of a playlist.
-    path       : '/channel/(?P<channel_id>.*)/playlist/(?P<playlist_id>.*)/'
+    path       : '/channel/(?P<channel_id>[^/]+)/playlist/(?P<playlist_id>[^/]+)/'
     channel_id : ['mine'|<CHANNEL_ID>]
     playlist_id: <PLAYLIST_ID>
     """
 
-    @kodion.RegisterProviderPath('^/channel/(?P<channel_id>.*)/playlist/(?P<playlist_id>.*)/$')
+    @kodion.RegisterProviderPath('^/channel/(?P<channel_id>[^/]+)/playlist/(?P<playlist_id>[^/]+)/$')
     def _on_channel_playlist(self, context, re_match):
         self.set_content_type(context, kodion.constants.content_type.EPISODES)
 
@@ -276,11 +276,11 @@ class Provider(kodion.AbstractProvider):
 
     """
     Lists all playlists of a channel.
-    path      : '/channel/(?P<channel_id>.*)/playlists/'
+    path      : '/channel/(?P<channel_id>[^/]+)/playlists/'
     channel_id: <CHANNEL_ID>
     """
 
-    @kodion.RegisterProviderPath('^/channel/(?P<channel_id>.*)/playlists/$')
+    @kodion.RegisterProviderPath('^/channel/(?P<channel_id>[^/]+)/playlists/$')
     def _on_channel_playlists(self, context, re_match):
         self.set_content_type(context, kodion.constants.content_type.FILES)
         result = []
@@ -298,11 +298,11 @@ class Provider(kodion.AbstractProvider):
 
     """
     Lists a playlist folder and all uploaded videos of a channel.
-    path      :'/channel|user/(?P<channel_id|username>.*)/'
+    path      :'/channel|user/(?P<channel_id|username>)[^/]+/'
     channel_id: <CHANNEL_ID>
     """
 
-    @kodion.RegisterProviderPath('^/(?P<method>(channel|user))/(?P<channel_id>.*)/$')
+    @kodion.RegisterProviderPath('^/(?P<method>(channel|user))/(?P<channel_id>[^/]+)/$')
     def _on_channel(self, context, re_match):
         self.set_content_type(context, kodion.constants.content_type.EPISODES)
 
@@ -380,25 +380,25 @@ class Provider(kodion.AbstractProvider):
 
         return False
 
-    @kodion.RegisterProviderPath('^/video/(?P<method>.*)/$')
+    @kodion.RegisterProviderPath('^/video/(?P<method>[^/]+)/$')
     def _on_video_x(self, context, re_match):
         method = re_match.group('method')
         return yt_video.process(method, self, context, re_match)
 
-    @kodion.RegisterProviderPath('^/playlist/(?P<method>.*)/(?P<category>.*)/$')
+    @kodion.RegisterProviderPath('^/playlist/(?P<method>[^/]+)/(?P<category>[^/]+)/$')
     def _on_playlist_x(self, context, re_match):
         method = re_match.group('method')
         category = re_match.group('category')
         return yt_playlist.process(method, category, self, context, re_match)
 
-    @kodion.RegisterProviderPath('^/subscriptions/(?P<method>.*)/$')
+    @kodion.RegisterProviderPath('^/subscriptions/(?P<method>[^/]+)/$')
     def _on_subscriptions(self, context, re_match):
         method = re_match.group('method')
         if method == 'list':
             self.set_content_type(context, kodion.constants.content_type.FILES)
         return yt_subscriptions.process(method, self, context, re_match)
 
-    @kodion.RegisterProviderPath('^/special/(?P<category>.*)/$')
+    @kodion.RegisterProviderPath('^/special/(?P<category>[^/]+)/$')
     def _on_yt_specials(self, context, re_match):
         category = re_match.group('category')
         if category == 'browse_channels':
@@ -434,7 +434,7 @@ class Provider(kodion.AbstractProvider):
             pass
         return True
 
-    @kodion.RegisterProviderPath('^/sign/(?P<mode>.*)/$')
+    @kodion.RegisterProviderPath('^/sign/(?P<mode>[^/]+)/$')
     def _on_sign(self, context, re_match):
         mode = re_match.group('mode')
         yt_login.process(mode, self, context, re_match, context.get_settings().requires_dual_login())
@@ -500,7 +500,7 @@ class Provider(kodion.AbstractProvider):
         result.extend(v3.response_to_items(self, context, json_data))
         return result
 
-    @kodion.RegisterProviderPath('^/config/(?P<switch>.*)/$')
+    @kodion.RegisterProviderPath('^/config/(?P<switch>[^/]+)/$')
     def configure_addon(self, context, re_match):
         switch = re_match.group('switch')
         settings = context.get_settings()
@@ -558,7 +558,7 @@ class Provider(kodion.AbstractProvider):
 
             context.get_ui().refresh_container()
 
-    @kodion.RegisterProviderPath('^/maintain/(?P<maint_type>.*)/(?P<action>.*)/$')
+    @kodion.RegisterProviderPath('^/maintain/(?P<maint_type>[^/]+)/(?P<action>[^/]+)/$')
     def maintenance_actions(self, context, re_match):
         maint_type = re_match.group('maint_type')
         action = re_match.group('action')
@@ -605,6 +605,57 @@ class Provider(kodion.AbstractProvider):
                             context.get_ui().show_notification(context.localize(30575))
                         else:
                             context.get_ui().show_notification(context.localize(30576))
+
+    @kodion.RegisterProviderPath('^/api/update/$')
+    def api_key_update(self, context, re_match):
+        settings = context.get_settings()
+        params = context.get_params()
+        client_id = params.get('client_id')
+        client_secret = params.get('client_secret')
+        api_key = params.get('api_key')
+        enable = params.get('enable', '').lower() == 'true'
+        updated_list = []
+        log_list = []
+
+        if api_key:
+            settings.set_string('youtube.api.key', api_key)
+            updated_list.append(context.localize(30201))
+            log_list.append('Key')
+        if client_id:
+            settings.set_string('youtube.api.id', client_id)
+            updated_list.append(context.localize(30202))
+            log_list.append('Id')
+        if client_secret:
+            settings.set_string('youtube.api.secret', client_secret)
+            updated_list.append(context.localize(30203))
+            log_list.append('Secret')
+        if updated_list:
+            context.get_ui().show_notification(context.localize(31597) % ', '.join(updated_list))
+        context.log_debug('Updated API keys: %s' % ', '.join(log_list))
+
+        client_id = settings.get_string('youtube.api.id', '')
+        client_secret = settings.get_string('youtube.api.secret', '')
+        api_key = settings.get_string('youtube.api.key', '')
+        missing_list = []
+        log_list = []
+
+        if enable and client_id and client_secret and api_key:
+            settings.set_bool('youtube.api.enable', True)
+            context.get_ui().show_notification(context.localize(31598))
+            context.log_debug('Personal API keys enabled')
+        elif enable:
+            if not api_key:
+                missing_list.append(context.localize(30201))
+                log_list.append('Key')
+            if not client_id:
+                missing_list.append(context.localize(30202))
+                log_list.append('Id')
+            if not client_secret:
+                missing_list.append(context.localize(30203))
+                log_list.append('Secret')
+            settings.set_bool('youtube.api.enable', False)
+            context.get_ui().show_notification(context.localize(31599) % ', '.join(missing_list))
+            context.log_debug('Failed to enable personal API keys. Missing: %s' % ', '.join(log_list))
 
     def on_root(self, context, re_match):
         """
