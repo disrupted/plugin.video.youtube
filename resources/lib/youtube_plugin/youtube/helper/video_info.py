@@ -9,14 +9,6 @@ import requests
 from ..youtube_exceptions import YouTubeException
 from .signature.cipher import Cipher
 from subtitles import Subtitles
-import xbmcaddon
-
-
-def LooseVersion(v):
-   filled = []
-   for point in v.split("."):
-      filled.append(point.zfill(8))
-   return tuple(filled)
 
 
 class VideoInfo(object):
@@ -358,6 +350,7 @@ class VideoInfo(object):
                 'audio': {'bitrate': 160, 'encoding': 'opus'}},
         # === Live DASH adaptive
         '9998': {'container': 'mpd',
+                 'Live': True,
                  'sort': [1080, 0],
                  'title': 'Live DASH',
                  'dash/audio': True,
@@ -376,12 +369,11 @@ class VideoInfo(object):
 
     def __init__(self, context, access_token='', language='en-US'):
         self._context = context
-        self._verify = context.get_settings().get_bool('simple.requests.ssl.verify', False)
+        self._verify = context.get_settings().verify_ssl()
         self._language = language.replace('-', '_')
         self.language = context.get_settings().get_string('youtube.language', 'en_US').replace('-', '_')
         self.region = context.get_settings().get_string('youtube.region', 'US')
         self._access_token = access_token
-        pass
 
     def load_stream_infos(self, video_id=None, player_config=None):
         return self._method_get_video_info(video_id, player_config)
@@ -421,7 +413,7 @@ class VideoInfo(object):
 
         try:
             player_config = json.loads(_player_config)
-        except:
+        except TypeError:
             player_config = dict()
 
         if not player_config:
@@ -431,153 +423,22 @@ class VideoInfo(object):
             else:
                 try:
                     player_config = json.loads(blank_config.group('player_config'))
-                except:
+                except TypeError:
                     player_config = dict()
 
-        return player_config
+        if not player_config.get('args', {}).get('player_response'):
+            result = re.search('window\["ytInitialPlayerResponse"\]\s*=\s*\(\s*(?P<player_response>{.+?})\s*\);', html)
+            if 'args' not in player_config:
+                player_config['args'] = dict()
+            player_config['args']['player_response'] = '{}' if not result else result.group('player_response')
 
-    def _method_watch(self, video_id, html, reason=u'', meta_info=None):
-        stream_list = []
-
-        player_config = self.get_player_config(html)
-
-        player_assets = player_config.get('assets', {})
-        player_args = player_config.get('args', {})
-        player_response = json.loads(player_args.get('player_response', '{}'))
-        captions = player_response.get('captions', {})
-        js = player_assets.get('js')
-
-        _meta_info = {'video': {},
-                      'channel': {},
-                      'images': {},
-                      'subtitles': []}
-        meta_info = meta_info if meta_info else _meta_info
-
-        if not meta_info['video'].get('id'):
-            meta_info['video']['id'] = player_args.get('video_id', '')
-        if not meta_info['video'].get('title'):
-            meta_info['video']['title'] = player_args.get('title', '')
-        if not meta_info['channel'].get('author'):
-            meta_info['channel']['author'] = player_args.get('author', '')
-        if not meta_info['channel'].get('id'):
-            meta_info['channel']['id'] = player_args.get('ucid', '')
-        try:
-            meta_info['video']['title'] = meta_info['video']['title'].decode('utf-8')
-            meta_info['channel']['author'] = meta_info['channel']['author'].decode('utf-8')
-        except:
-            pass
-
-        if (not meta_info['images'].get('high')) or (not meta_info['images'].get('medium')) or \
-                (not meta_info['images'].get('standard')) or (not meta_info['images'].get('default')):
-            _related_args = '{}'
-            lead = '\'RELATED_PLAYER_ARGS\': '
-            tail = ',\n'
-            pos = html.find(lead)
-            if pos >= 0:
-                html2 = html[pos + len(lead):]
-                pos = html2.find(tail)
-                if pos:
-                    _related_args = html2[:pos]
-
+        if isinstance(player_config.get('args', {}).get('player_response'), basestring):
             try:
-                related_args = json.loads(_related_args)
-                related_args = dict(urlparse.parse_qsl(related_args.get('rvs')))
-            except:
-                related_args = dict()
+                player_config['args']['player_response'] = json.loads(player_config['args']['player_response'])
+            except TypeError:
+                player_config['args']['player_response'] = dict()
 
-            image_data_list = [
-                {'from': 'iurlhq', 'to': 'high'},
-                {'from': 'iurlmq', 'to': 'medium'},
-                {'from': 'iurlsd', 'to': 'standard'},
-                {'from': 'thumbnail_url', 'to': 'default'}]
-            for image_data in image_data_list:
-                image_url = related_args.get(image_data['from'], '')
-                if image_url:
-                    meta_info['images'][image_data['to']] = image_url
-
-        if not meta_info['subtitles']:
-            meta_info['subtitles'] = Subtitles(self._context, video_id, captions).get_subtitles()
-
-        if player_args.get('hlsvp'):
-            return self._load_manifest(player_args.get('hlsvp'), video_id, meta_info=meta_info)
-
-        cipher = None
-        if js:
-            if not js.startswith('http'):
-                js = 'http://www.youtube.com/%s' % js
-            cipher = Cipher(self._context, java_script_url=js)
-
-        if player_args.get('url_encoded_fmt_stream_map'):
-            url_encoded_fmt_stream_map = player_args.get('url_encoded_fmt_stream_map')
-            url_encoded_fmt_stream_map = url_encoded_fmt_stream_map.split(',')
-
-            for value in url_encoded_fmt_stream_map:
-                attr = dict(urlparse.parse_qsl(value))
-
-                try:
-                    url = attr.get('url', None)
-                    conn = attr.get('conn', None)
-                    if url:
-                        url = urllib.unquote(attr['url'])
-
-                        signature = ''
-                        if attr.get('s', ''):
-                            signature = cipher.get_signature(attr['s'])
-                            pass
-                        elif attr.get('sig', ''):
-                            signature = attr.get('sig', '')
-                            pass
-
-                        if signature:
-                            url += '&signature=%s' % signature
-                            pass
-
-                        itag = attr['itag']
-                        yt_format = self.FORMAT.get(itag, None)
-
-                        if not yt_format:
-                            raise Exception('unknown yt_format for itag "%s"' % itag)
-
-                        # this format is discontinued
-                        if yt_format.get('discontinued', False) or yt_format.get('unsupported', False):
-                            continue
-                            pass
-
-                        video_stream = {'url': url,
-                                        'meta': meta_info}
-                        video_stream.update(yt_format)
-
-                        stream_list.append(video_stream)
-                        pass
-                    elif conn:  # rtmpe
-                        url = '%s?%s' % (conn, urllib.unquote(attr['stream']))
-                        itag = attr['itag']
-                        yt_format = self.FORMAT.get(itag, None)
-                        yt_format['rtmpe'] = True
-                        if not yt_format:
-                            raise Exception('unknown yt_format for itag "%s"' % itag)
-                        video_stream = {'url': url,
-                                        'meta': meta_info}
-                        video_stream.update(yt_format)
-
-                        stream_list.append(video_stream)
-                        pass
-                except Exception as ex:
-                    pass
-
-        # try to find the reason of this page if we've only got 'UNKNOWN'
-        if len(stream_list) == 0 and reason.lower() == 'unknown':
-            reason_match = re.search(r'<h1[^>]*>(?P<reason>[^<]+)', html)
-            if reason_match:
-                reason = reason_match.group('reason').strip()
-                pass
-            pass
-
-        # this is a reason from get_video_info. We should at least display the reason why the video couldn't be loaded
-        if len(stream_list) == 0 and reason:
-            raise YouTubeException(reason)
-
-        return stream_list
+        return player_config
 
     def _load_manifest(self, url, video_id, meta_info=None):
         headers = {'Host': 'manifest.googlevideo.com',
@@ -616,9 +477,6 @@ class VideoInfo(object):
                                     'meta': meta_info}
                     video_stream.update(yt_format)
                     streams.append(video_stream)
-                    pass
-                pass
-            pass
         return streams
 
     def _method_get_video_info(self, video_id=None, player_config=None):
@@ -637,14 +495,14 @@ class VideoInfo(object):
                   'el': 'default',
                   'html5': '1'}
 
-        html = None
         if player_config is None:
             html = self.get_watch_page(video_id)
             player_config = self.get_player_config(html)
 
         player_assets = player_config.get('assets', {})
         player_args = player_config.get('args', {})
-        player_response = json.loads(player_args.get('player_response', '{}'))
+        player_response = player_args.get('player_response', {})
+        playability_status = player_response.get('playabilityStatus', {})
         captions = player_response.get('captions', {})
         js = player_assets.get('js')
 
@@ -661,7 +519,8 @@ class VideoInfo(object):
         cipher = None
         if js:
             if not js.startswith('http'):
-                js = 'http://www.youtube.com/%s' % js
+                js = 'http://www.youtube.com/%s' % js.lstrip('/')
+            self._context.log_debug('Cipher: js player: |%s|' % js)
             cipher = Cipher(self._context, java_script_url=js)
 
         params['sts'] = player_config.get('sts', '')
@@ -695,6 +554,7 @@ class VideoInfo(object):
             meta_info['channel']['author'] = meta_info['channel']['author'].decode('utf-8')
         except:
             pass
+
         meta_info['channel']['id'] = params.get('ucid', '')
         image_data_list = [
             {'from': 'iurlhq', 'to': 'high'},
@@ -705,26 +565,25 @@ class VideoInfo(object):
             image_url = params.get(image_data['from'], '')
             if image_url:
                 meta_info['images'][image_data['to']] = image_url
-                pass
-            pass
 
         meta_info['subtitles'] = Subtitles(self._context, video_id, captions).get_subtitles()
 
-        if (params.get('status', '') == 'fail') and html:
-            return self._method_watch(video_id, html, reason=params.get('reason', 'UNKNOWN'), meta_info=meta_info)
-
-        if self._context.get_settings().use_dash():
-            inputstream_version = xbmcaddon.Addon('inputstream.adaptive').getAddonInfo('version')
-            live_dash_supported = LooseVersion(inputstream_version) >= LooseVersion('2.0.12')
-        else:
-            live_dash_supported = False
+        if (params.get('status', '') == 'fail') or (playability_status.get('status', 'ok').lower() != 'ok'):
+            if (not ((playability_status.get('desktopLegacyAgeGateReason', 0) == 1) and not self._context.get_settings().age_gate()) and
+                    not ((playability_status.get('status', 'ok').lower() == 'content_check_required') and self._context.get_settings().offensive_content())):
+                reason = params.get('reason')
+                if not reason:
+                    reason = playability_status.get('reason')
+                    if not reason:
+                        reason = 'UNKNOWN'
+                        if 'errorScreen' in playability_status and 'playerErrorMessageRenderer' in playability_status['errorScreen']:
+                            reason = playability_status['errorScreen']['playerErrorMessageRenderer'].get('reason', {}).get('simpleText', 'UNKNOWN')
+                raise YouTubeException(reason)
 
         if params.get('live_playback', '0') == '1':
             url = params.get('hlsvp', '')
             if url:
                 stream_list = self._load_manifest(url, video_id, meta_info=meta_info)
-            if not live_dash_supported:
-                return stream_list
 
         mpd_url = params.get('dashmpd', '')
         use_cipher_signature = 'True' == params.get('use_cipher_signature', None)

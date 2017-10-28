@@ -21,6 +21,8 @@
         <setting id="kodion.content.max_per_page" type="enum" label="30022" values="5|10|15|20|25|30|35|40|45|50" default="9" />
         <setting label="30023" type="slider" id="kodion.search.size" default="10" range="0,10,200" option="int" />
         <setting id="kodion.safe.search" type="enum" label="30594" lvalues="30595|30561|30596" default="0" />
+        <setting id="kodion.age.gate" type="bool" label="30603" default="true"/>
+        <setting id="kodion.offensive.content" type="bool" label="30604" default="false"/>
     </category>
 
     <category label="30516">
@@ -33,6 +35,8 @@
                  visible="eq(-2,true)" default=""/>
         <setting id="youtube.folder.recommendations.show" type="bool" label="30551" default="true"/>
         <setting id="youtube.folder.popular_right_now.show" type="bool" label="30513" default="true"/>
+        <setting id="youtube.folder.quick_search.show" type="bool" label="30605" default="false"/>
+        <setting id="youtube.folder.quick_search_incognito.show" type="bool" label="30606" default="false"/>
         <setting id="youtube.folder.my_channel.show" type="bool" label="30507" default="true"/>
         <setting id="youtube.folder.watch_later.show" type="bool" label="30107" default="true"/>
         <setting id="youtube.folder.watch_later.playlist" type="text" label="30037" enable="eq(-1,true)"
