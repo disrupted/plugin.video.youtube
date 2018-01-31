@@ -1,8 +1,7 @@
-try:
-    from http.server import BaseHTTPRequestHandler, HTTPServer
-except ImportError:
-    from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
 import requests
 import socket
@@ -15,7 +14,7 @@ import xbmcgui
 class DashProxyHandler(BaseHTTPRequestHandler):
     local_ranges = ('10.', '172.16.', '192.168.', '127.0.0.1', 'localhost', '::1')
     chunk_size = 1024 * 64
-    base_path = 'special://temp/temp'
+    base_path = 'special://temp/plugin.video.youtube'
 
     def do_GET(self):
         if not self.client_address[0].startswith(self.local_ranges):

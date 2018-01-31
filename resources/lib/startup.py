@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 __author__ = 'bromix'
 
 from datetime import datetime
@@ -5,7 +8,7 @@ import time
 
 from youtube_plugin.kodion.impl import Context
 from youtube_plugin.kodion.constants import setting
-from youtube_plugin.kodion.utils import Monitor
+from youtube_plugin.kodion.utils import YouTubeMonitor, YouTubePlayer
 
 context = Context(plugin_id='plugin.video.youtube')
 
@@ -47,7 +50,7 @@ def get_stamp_diff(current_stamp):
     time_delta = current_datetime - stamp_datetime
     total_seconds = 0
     if time_delta:
-        total_seconds = ((time_delta.seconds + time_delta.days * 24 * 3600) * 10 ** 6) / 10 ** 6
+        total_seconds = old_div(((time_delta.seconds + time_delta.days * 24 * 3600) * 10 ** 6), 10 ** 6)
     return total_seconds
 
 
@@ -56,8 +59,10 @@ ping_delay_time = 60
 ping_timestamp = None
 first_run = True
 
+player = YouTubePlayer(context=context)
+
 if mpd_addon:
-    monitor = Monitor()
+    monitor = YouTubeMonitor()
     while not monitor.abortRequested():
 
         ping_diff = get_stamp_diff(ping_timestamp)
