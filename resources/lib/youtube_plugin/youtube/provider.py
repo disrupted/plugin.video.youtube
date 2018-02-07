@@ -5,6 +5,7 @@ import os
 import re
 import json
 import shutil
+import socket
 
 from ..youtube.helper import yt_subscriptions
 from .. import kodion
@@ -111,7 +112,8 @@ class Provider(kodion.AbstractProvider):
                  'youtube.retry': 30612,
                  'youtube.failed.watch_later.retry': 30614,
                  'youtube.cancel': 30615,
-                 'youtube.must.be.signed.in': 30616
+                 'youtube.must.be.signed.in': 30616,
+                 'youtube.select.listen.ip': 30644
                  }
 
     def __init__(self):
@@ -693,6 +695,14 @@ class Provider(kodion.AbstractProvider):
             if result == -1:
                 return False
             context.get_settings().set_subtitle_languages(result)
+        elif switch == 'listen_ip':
+            local_ranges = ('10.', '172.16.', '192.168.')
+            addresses = [iface[4][0] for iface in socket.getaddrinfo(socket.gethostname(), None) if iface[4][0].startswith(local_ranges)] + ['127.0.0.1', '0.0.0.0']
+            selected_address = context.get_ui().on_select(context.localize(self.LOCAL_MAP['youtube.select.listen.ip']), addresses)
+            if selected_address == -1:
+                return False
+            else:
+                context.get_settings().set_httpd_listen(addresses[selected_address])
         else:
             return False
 
@@ -771,6 +781,8 @@ class Provider(kodion.AbstractProvider):
             _maint_files = {'function_cache': 'cache.sqlite',
                             'search_cache': 'search.sqlite',
                             'settings_xml': 'settings.xml',
+                            'api_keys': 'api_keys.json',
+                            'access_manager': 'access_manager.json',
                             'temp_files': 'special://temp/plugin.video.youtube/'}
             _file = _maint_files.get(maint_type, '')
             success = False
@@ -1068,6 +1080,7 @@ class Provider(kodion.AbstractProvider):
 
     def handle_exception(self, context, exception_to_handle):
         if isinstance(exception_to_handle, LoginException):
+            failed_refresh = False
             context.get_access_manager().update_access_token('')
 
             msg = message = exception_to_handle.get_message()
@@ -1086,6 +1099,9 @@ class Provider(kodion.AbstractProvider):
                 if 'code' in msg:
                     code = msg['code']
 
+                if message == u'Unauthorized' and error == u'unauthorized_client':
+                    failed_refresh = True
+
             if error and code:
                 title = '%s: [%s] %s' % ('LoginException', code, error)
             elif error:
@@ -1095,7 +1111,8 @@ class Provider(kodion.AbstractProvider):
 
             context.get_ui().show_notification(message, title)
             context.log_error('%s: %s' % (title, message))
-            context.get_ui().open_settings()
+            if not failed_refresh:
+                context.get_ui().open_settings()
             return False
 
         return True
