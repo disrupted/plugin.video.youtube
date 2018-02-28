@@ -189,7 +189,6 @@ class Provider(kodion.AbstractProvider):
 
         api_last_origin = settings.get_api_last_origin()
 
-        youtubetv_config = YouTube.CONFIGS.get('youtube-tv')
         youtube_config = YouTube.CONFIGS.get('main')
 
         dev_id = context.get_param('addon_id', None)
@@ -241,14 +240,13 @@ class Provider(kodion.AbstractProvider):
                         refresh_tokens = refresh_tokens.split('|')
                     context.log_debug('Access token count: |%d| Refresh token count: |%d|' % (len(access_tokens), len(refresh_tokens)))
                     # create a new access_token
+                    client = YouTube(language=language, region=region, items_per_page=items_per_page, config=youtube_config)
                     if len(access_tokens) != 2 and len(refresh_tokens) == 2:
                         try:
 
-                            access_token_kodi, expires_in_kodi = \
-                                YouTube(language=language, config=youtube_config).refresh_token(refresh_tokens[1])
+                            access_token_kodi, expires_in_kodi = client.refresh_token(refresh_tokens[1])
 
-                            access_token_tv, expires_in_tv = \
-                                YouTube(language=language, config=youtubetv_config).refresh_token_tv(refresh_tokens[0])
+                            access_token_tv, expires_in_tv = client.refresh_token_tv(refresh_tokens[0])
 
                             access_tokens = [access_token_tv, access_token_kodi]
 
@@ -273,9 +271,9 @@ class Provider(kodion.AbstractProvider):
 
                     if len(access_tokens) == 0:
                         access_tokens = ['', '']
-
-                    self._client = YouTube(language=language, region=region, items_per_page=items_per_page, access_token=access_tokens[1],
-                                           access_token_tv=access_tokens[0], config=youtube_config)
+                    client.set_access_token(access_token=access_tokens[1])
+                    client.set_access_token_tv(access_token_tv=access_tokens[0])
+                    self._client = client
                     self._client.set_log_error(context.log_error)
                 else:
                     self._client = YouTube(items_per_page=items_per_page, language=language, region=region, config=youtube_config)
@@ -493,8 +491,13 @@ class Provider(kodion.AbstractProvider):
     Plays a video.
     path for video: '/play/?video_id=XXXXXXX'
 
-    TODO: path for playlist: '/play/?playlist_id=XXXXXXX&mode=[OPTION]'
+    path for playlist: '/play/?playlist_id=XXXXXXX&mode=[OPTION]'
     OPTION: [normal(default)|reverse|shuffle]
+    
+    path for channel live streams: '/play/?channel_id=UCXXXXXXX&live=X
+    OPTION: 
+        live parameter required, live=1 for first live stream
+        live = index of live stream if channel has multiple live streams
     """
 
     @kodion.RegisterProviderPath('^/play/$')
@@ -504,7 +507,9 @@ class Provider(kodion.AbstractProvider):
             return yt_play.play_video(self, context, re_match)
         elif 'playlist_id' in params:
             return yt_play.play_playlist(self, context, re_match)
-
+        elif 'channel_id' in params and 'live' in params:
+            if int(params['live']) > 0:
+                return yt_play.play_channel_live(self, context, re_match)
         return False
 
     @kodion.RegisterProviderPath('^/video/(?P<method>[^/]+)/$')
