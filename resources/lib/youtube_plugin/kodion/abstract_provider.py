@@ -67,7 +67,6 @@ class AbstractProvider(object):
         # start the setup wizard
         wizard_steps = []
         if context.get_settings().is_setup_wizard_enabled():
-<<<<<<< HEAD
             context.get_settings().set_bool(constants.setting.SETUP_WIZARD, False)
 
             if utils.ViewManager(context).has_supported_views():
@@ -86,9 +85,6 @@ class AbstractProvider(object):
                 context.log("ViewManager: Unknown skin id '%s'" % skin_id)
                 pass
 
-=======
-            context.get_settings().set_bool(constants.setting.SETUP_WIZARD, False, on_changed=False)
->>>>>>> be24f5ad309d5aeed5374c0608b67bca656cac46
             wizard_steps.extend(self.get_wizard_steps(context))
             pass
 
