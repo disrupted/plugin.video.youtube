@@ -19,6 +19,7 @@ VERIFY_SSL = 'simple.requests.ssl.verify'  # (bool)
 
 SUPPORT_ALTERNATIVE_PLAYER = 'kodion.support.alternative_player'  # (bool)
 
+<<<<<<< HEAD
 VIEW_OVERRIDE = 'kodion.view.override'  # (bool)
 VIEW_DEFAULT = 'kodion.view.default'  # (int)
 VIEW_X = 'kodion.view.%s'  # (int)
@@ -31,10 +32,10 @@ ACCESS_TOKEN = 'kodion.access_token'
 REFRESH_TOKEN = 'kodion.refresh_token'
 ACCESS_TOKEN_EXPIRES = 'kodion.access_token.expires'
 
+=======
+>>>>>>> be24f5ad309d5aeed5374c0608b67bca656cac46
 ALLOW_DEV_KEYS = 'youtube.allow.dev.keys'  # (bool)
 
 DASH_PROXY = 'kodion.mpd.proxy'  # (bool)
 HTTPD_PORT = 'kodion.mpd.proxy.port'  # (number)
 HTTPD_LISTEN = 'kodion.http.listen'  # (string)
-
-API_LAST_ORIGIN = 'youtube.api.last.origin'  # (string)
