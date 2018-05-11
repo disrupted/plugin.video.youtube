@@ -8,6 +8,12 @@ from ... import kodion
 from ...kodion import utils
 from ...youtube.helper import yt_context_menu
 
+try:
+    import inputstreamhelper
+except ImportError:
+    inputstreamhelper = None
+
+
 __RE_SEASON_EPISODE_MATCHES__ = [re.compile(r'Part (?P<episode>\d+)'),
                                  re.compile(r'#(?P<episode>\d+)'),
                                  re.compile(r'Ep.[^\w]?(?P<episode>\d+)'),
@@ -256,8 +262,8 @@ def update_video_infos(provider, context, video_id_dict, playlist_item_id_dict=N
         replace_context_menu = False
 
         # Refresh ('My Subscriptions')
-        if context.get_path() == '/special/new_uploaded_videos_tv/' or context.get_path().startswith(
-                '/channel/mine/playlist/'):
+        if context.get_path().startswith('/special/new_uploaded_videos_tv') or \
+                context.get_path().startswith('/channel/mine/playlist/'):
             yt_context_menu.append_refresh(context_menu, provider, context)
 
         # Queue Video
@@ -320,8 +326,8 @@ def update_video_infos(provider, context, video_id_dict, playlist_item_id_dict=N
             yt_context_menu.append_subscribe_to_channel(context_menu, provider, context, channel_id, channel_name)
 
         # more...
-        refresh_container = context.get_path().startswith(
-            '/channel/mine/playlist/LL') or context.get_path() == '/special/disliked_videos/'
+        refresh_container = context.get_path().startswith('/channel/mine/playlist/LL') or \
+                            context.get_path() == '/special/disliked_videos/'
         yt_context_menu.append_more_for_video(context_menu, provider, context, video_id,
                                               is_logged_in=provider.is_logged_in(),
                                               refresh_container=refresh_container)
@@ -330,10 +336,14 @@ def update_video_infos(provider, context, video_id_dict, playlist_item_id_dict=N
             video_item.set_context_menu(context_menu, replace=replace_context_menu)
 
 
-def update_play_info(provider, context, video_id, video_item, meta_data=None, live=False):
+def update_play_info(provider, context, video_id, video_item, video_stream):
     settings = context.get_settings()
+    ui = context.get_ui()
     resource_manager = provider.get_resource_manager(context)
     video_data = resource_manager.get_videos([video_id])
+
+    meta_data = video_stream.get('meta', None)
+    live = video_stream.get('Live', False)
 
     thumb_size = settings.use_thumbnail_size()
     image = None
@@ -352,6 +362,19 @@ def update_play_info(provider, context, video_id, video_item, meta_data=None, li
 
     # set mediatype
     video_item.set_mediatype('video')  # using video
+
+    license_info = video_stream.get('license_info', {})
+
+    if inputstreamhelper and \
+            license_info.get('proxy') and \
+            license_info.get('url') and \
+            license_info.get('token'):
+        ishelper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
+        ishelper.check_inputstream()
+
+    video_item.set_license_key(license_info.get('proxy'))
+    ui.set_home_window_property('license_url', license_info.get('url'))
+    ui.set_home_window_property('license_token', license_info.get('token'))
 
     # set the title
     if not video_item.get_title():
