@@ -238,7 +238,7 @@ msgstr "Διαγραφή \"%s\"?"
 
 msgctxt "#30117"
 msgid "Remove \"%s\"?"
-msgstr "Αφαίρεση \"%s\"?""
+msgstr "Αφαίρεση \"%s\"?"
 
 msgctxt "#30118"
 msgid "Delete"
@@ -767,8 +767,8 @@ msgid "Port %s already in use. Cannot start http server."
 msgstr "Η θύρα %s χρησιμοποιείται ήδη. Αδυναμία έναρξης εξυπηρετητή http."
 
 msgctxt "#30621"
-msgid "Proxy is required for mpeg-dash vods"
-msgstr "Ο μεσολαβητής απαιτείται για την αναπαραγωγή mpeg-dash"
+msgid "Proxy is required for mpeg-dash vods (see HTTP Server)"
+msgstr "Ο μεσολαβητής απαιτείται για την αναπαραγωγή mpeg-dash (βλέπε εξυπηρετητής HTTP)"
 
 msgctxt "#30622"
 msgid "Purchases"
@@ -820,19 +820,19 @@ msgstr "http://διεύθυνσηIP:θύρα/api (βλέπε εξυπηρετη�
 
 msgctxt "#30634"
 msgid "YouTube Add-on API Configuration"
-msgstr ""
+msgstr "Ρύθμιση API προσθέτου Youtube"
 
 msgctxt "#30635"
 msgid "No changes detected, API keys were not updated."
-msgstr ""
+msgstr "Δεν ανιχνέφθηκαν αλλαγές, τα κλειδιά API δεν ενημερώθηκαν"
 
 msgctxt "#30636"
 msgid "Personal API keys are enabled."
-msgstr ""
+msgstr "Τα προσωπικά κλειδιά API έχουν ενεργοποιηθεί"
 
 msgctxt "#30637"
 msgid "Personal API keys are disabled."
-msgstr ""
+msgstr "Τα προσωπικά κλειδιά API έχουν απενεργοποιηθεί"
 
 msgctxt "#30638"
 msgid "Bookmark this page to quickly add your keys in the future."
@@ -840,24 +840,208 @@ msgstr ""
 
 msgctxt "#30639"
 msgid "Found personal API keys in api_keys.json, would you like to restore them? Choosing no will overwrite them."
-msgstr ""
+msgstr "Βρέθηκαν προσωπικά κλειδιά API στο api_keys.json, θέλετε να τα ανακτήσετε; Επιλέγοντας Όχι θα τα αντικαταστήσει"
 
 msgctxt "#30640"
 msgid "Restore"
-msgstr ""
+msgstr "Ανάκτηση"
 
 msgctxt "#30641"
 msgid "Delete api_keys.json"
-msgstr ""
+msgstr "Διαγραφή api_keys.json"
 
 msgctxt "#30642"
 msgid "Delete access_manager.json"
-msgstr ""
+msgstr "Διαγραφή access_manager.json"
 
 msgctxt "#30643"
 msgid "Listen on IP"
-msgstr ""
+msgstr "Ακρόαση στην IP"
 
 msgctxt "#30644"
 msgid "Select listen IP"
-msgstr ""
+msgstr "Επιλογή IP ακρόασης"
+
+msgctxt "#30645"
+msgid "Refresh after watching"
+msgstr "Ανανέωση μετά την παρακολούθηση"
+
+msgctxt "#30646"
+msgid "Upcoming Live"
+msgstr "Ανερχόμενες ζωντανές μεταδόσεις"
+
+msgctxt "#30647"
+msgid "Completed Live"
+msgstr "Ολοκληρωμένες ζωντανές μεταδόσεις"
+
+msgctxt "#30648"
+msgid "API Key is incorrect. Settings - API - API Key"
+msgstr "Τα κλειδί API είναι λανθασμένο. Ρυθμίσεις - API - Κλειδί API"
+
+msgctxt "#30649"
+msgid "Client Id is incorrect. Settings - API - API Id"
+msgstr "Τα αναγνωριστικό πελάτη είναι λανθασμένο. Ρυθμίσεις - API - Αναγνωριστικό API"
+
+msgctxt "#30650"
+msgid "Client Secret is incorrect. Settings - API - API Secret"
+msgstr "Τα μυστικό πελάτη είναι λανθασμένο. Ρυθμίσεις - API - Μυστικό API"
+
+msgctxt "#30651"
+msgid "Location"
+msgstr "Τοποθεσία"
+
+msgctxt "#30652"
+msgid "Location radius (km)"
+msgstr "Εύρος τοποθεσίας (χλμ)"
+
+msgctxt "#30653"
+msgid "Perform geolocation? Used for [B]My Location[/B]"
+msgstr "Εκτέλεση εύρεσης τοποθεσίας; Χρησιμοποιείται για την [B]Η Τοποθεσία μου[/B]"
+
+msgctxt "#30654"
+msgid "My Location"
+msgstr "Η Τοποθεσία μου"
+
+msgctxt "#30655"
+msgid "Switch User"
+msgstr "Αλλαγή χρήστη"
+
+msgctxt "#30656"
+msgid "New user"
+msgstr "Νέος χρήστης"
+
+msgctxt "#30657"
+msgid "Unnamed"
+msgstr "Ανώνυμος"
+
+msgctxt "#30658"
+msgid "Enter a name for this user"
+msgstr "Εισαγωγή ονόματος για αυτόν τον χρήστη"
+
+msgctxt "#30659"
+msgid "User is now '%s'"
+msgstr "Τωρινός χρήστης '%s'"
+
+msgctxt "#30660"
+msgid "Users"
+msgstr "Χρήστες"
+
+msgctxt "#30661"
+msgid "Add a user"
+msgstr "Προσθήκη χρήστη"
+
+msgctxt "#30662"
+msgid "Remove a user"
+msgstr "Αφαίρεση χρήστη"
+
+msgctxt "#30663"
+msgid "Rename a user"
+msgstr "Μετονομασία χρήστη"
+
+msgctxt "#30664"
+msgid "Switch user"
+msgstr "Αλλαγή χρήστη"
+
+msgctxt "#30665"
+msgid "Switch to '%s' now?"
+msgstr "Αλλαγή στον/στην '%s' τώρα;"
+
+msgctxt "#30666"
+msgid "Removed '%s'"
+msgstr "Αφαίρεση '%s'"
+
+msgctxt "#30667"
+msgid "Renamed '%s' to '%s'"
+msgstr "Αλλαγή '%s' σε '%s'"
+
+msgctxt "#30668"
+msgid "Play count minimum percent"
+msgstr "Ελάχιστο ποσοστό καταμέτρησης αναπαραγωγής"
+
+msgctxt "#30669"
+msgid "Mark unwatched"
+msgstr "Σημείωση ως μη προβεβλημένο"
+
+msgctxt "#30670"
+msgid "Mark watched"
+msgstr "Σημείωση ως προβεβλημένο"
+
+msgctxt "#30671"
+msgid "Clear playback history"
+msgstr "Εκκαθάριση ιστορικού αναπαραγωγής"
+
+msgctxt "#30672"
+msgid "Delete playback history"
+msgstr "Διαγραφή ιστορικού αναπαραγωγής"
+
+msgctxt "#30673"
+msgid "playback history"
+msgstr "ιστορικό αναπαραγωγής"
+
+msgctxt "#30674"
+msgid "Reset resume point"
+msgstr "Επαναφορά σημείου συνέχισης"
+
+msgctxt "#30675"
+msgid "Use playback history (watched, resume tracking)"
+msgstr "Κάνε χρήση ιστορικού (προβληθέντα, συνέχιση παρακολούθησης)"
+
+msgctxt "#30676"
+msgid "Just now"
+msgstr "Μόλις τώρα"
+
+msgctxt "#30677"
+msgid "A minute ago"
+msgstr "Ένα λεπτό πριν"
+
+msgctxt "#30678"
+msgid "Recently"
+msgstr "Πρόσφατα"
+
+msgctxt "#30679"
+msgid "An hour ago"
+msgstr "Μία ώρα πριν"
+
+msgctxt "#30680"
+msgid "Two hours ago"
+msgstr "Δύο ώρες πριν"
+
+msgctxt "#30681"
+msgid "Three hours ago"
+msgstr "Τρεις ώρες πριν"
+
+msgctxt "#30682"
+msgid "Yesterday at"
+msgstr "Εχθές σε"
+
+msgctxt "#30683"
+msgid "Two days ago"
+msgstr "Δύο μέρες πριν"
+
+msgctxt "#30684"
+msgid "Today at"
+msgstr "Σήμερα σε"
+
+msgctxt "#30685"
+msgid "Delete data cache database"
+msgstr "Διαγραφή βάσης δεδομένων δεδομένων μνήμης"
+
+msgctxt "#30686"
+msgid "Clear data cache"
+msgstr "Εκκαθάριση δεδομένων μνήμης"
+
+msgctxt "#30687"
+msgid "data cache"
+msgstr "δεδομένα μνήμης"
+
+msgctxt "#30688"
+msgid "Use for videos"
+msgstr "Κάνε χρήση για βίντεο"
+
+msgctxt "#30689"
+msgid "Use for live streams"
+msgstr "Κάνε χρήση για ζωντανές ροές"
+
+msgctxt "#30690"
+msgid "InputStream Adaptive >= 2.0.12 is required for live streams"
+msgstr "Απαιτείται InputStream Adaptive >= 2.0.12 για τις ζωντανές ροές"
